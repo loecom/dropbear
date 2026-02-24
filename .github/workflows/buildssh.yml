@@ -50,7 +50,6 @@ jobs:
             --disable-pututline \
             --disable-putwutline \
             --enable-static \
-            --disable-bundled-libtom
 
       - name: Compile Dropbear
         run: |

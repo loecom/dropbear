@@ -1,0 +1,60 @@
+name: Build Dropbear from Fork
+
+on:
+  push:
+    branches: [ main ]        # 根据你的默认分支调整，如 master、develop 等
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout your Dropbear fork
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository }}   # 自动使用当前 fork 的仓库
+          fetch-depth: 1
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential zlib1g-dev
+
+      - name: Configure Dropbear
+        run: |
+          ./configure \
+            --prefix=/tmp/dropbear-build \
+            --disable-lastlog \
+            --disable-utmp \
+            --disable-utmpx \
+            --disable-wtmp \
+            --disable-wtmpx \
+            --disable-loginfunc \
+            --disable-pututline \
+            --disable-putwutline \
+            --enable-static
+
+      - name: Compile Dropbear
+        run: |
+          make PROGRAMS="dropbear dbclient dropbearkey dropbearconvert scp"
+
+      - name: Install to staging directory
+        run: |
+          make PROGRAMS="dropbear dbclient dropbearkey dropbearconvert scp" install
+
+      - name: Show compiled binaries
+        run: |
+          echo "=== sbin ==="
+          ls -l /tmp/dropbear-build/sbin/
+          echo "=== bin ==="
+          ls -l /tmp/dropbear-build/bin/
+
+      - name: Upload binaries as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dropbear-from-fork
+          path: /tmp/dropbear-build/
+          retention-days: 7

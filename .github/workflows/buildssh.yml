@@ -34,15 +34,12 @@ jobs:
 
       - name: Download and cross-compile libxcrypt for ARMv5
         run: |
-          # Clone libxcrypt (modern replacement for libcrypt)
-          git clone https://github.com/besser82/libxcrypt.git
-          cd libxcrypt
-          git checkout v4.5.2  # stable version
-
-          # 👇 关键：生成 configure 脚本
-          ./autogen.sh
+          # 下载已生成 configure 的官方发布版
+          wget https://github.com/besser82/libxcrypt/releases/download/v4.5.2/libxcrypt-4.5.2.tar.xz
+          tar -xf libxcrypt-4.5.2.tar.xz
+          cd libxcrypt-4.5.2
       
-          # Configure for ARMv5
+          # 直接 configure（已有 configure 脚本！）
           CC=arm-linux-gnueabi-gcc \
           ./configure \
             --host=arm-linux-gnueabi \

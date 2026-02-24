@@ -1,32 +1,35 @@
-name: Build Dropbear from Fork
+name: Build Dropbear for ARMv5
 
 on:
   push:
-    branches: [ main ]        # 根据你的默认分支调整，如 master、develop 等
+    branches: [ main ]
   pull_request:
     branches: [ main ]
   workflow_dispatch:
 
 jobs:
-  build:
+  build-armv5:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout your Dropbear fork
         uses: actions/checkout@v4
         with:
-          repository: ${{ github.repository }}   # 自动使用当前 fork 的仓库
+          repository: ${{ github.repository }}
           fetch-depth: 1
 
-      - name: Install build dependencies
+      - name: Install ARMv5 cross-compilation toolchain
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential zlib1g-dev
+          sudo apt-get install -y gcc-arm-linux-gnueabi
 
-      - name: Configure Dropbear
+      - name: Configure for ARMv5 (soft-float, static)
         run: |
+          # 使用 ARMv5 交叉编译器
+          CC=arm-linux-gnueabi-gcc \
           ./configure \
-            --prefix=/tmp/dropbear-build \
+            --host=arm-linux-gnueabi \
+            --prefix=/tmp/dropbear-armv5 \
             --disable-lastlog \
             --disable-utmp \
             --disable-utmpx \
@@ -35,26 +38,25 @@ jobs:
             --disable-loginfunc \
             --disable-pututline \
             --disable-putwutline \
-            --enable-static
+            --enable-static \
+            --disable-bundled-libtom
 
       - name: Compile Dropbear
         run: |
-          make PROGRAMS="dropbear dbclient dropbearkey dropbearconvert scp"
+          make clean
+          make PROGRAMS="dropbear dbclient dropbearkey dropbearconvert scp" -j$(nproc)
 
       - name: Install to staging directory
         run: |
           make PROGRAMS="dropbear dbclient dropbearkey dropbearconvert scp" install
 
-      - name: Show compiled binaries
+      - name: Verify architecture of binary
         run: |
-          echo "=== sbin ==="
-          ls -l /tmp/dropbear-build/sbin/
-          echo "=== bin ==="
-          ls -l /tmp/dropbear-build/bin/
+          file /tmp/dropbear-armv5/sbin/dropbear
 
-      - name: Upload binaries as artifact
+      - name: Upload ARMv5 binaries as artifact
         uses: actions/upload-artifact@v4
         with:
-          name: dropbear-from-fork
-          path: /tmp/dropbear-build/
+          name: dropbear-armv5-binaries
+          path: /tmp/dropbear-armv5/
           retention-days: 7

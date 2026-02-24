@@ -35,6 +35,8 @@ jobs:
       - name: Configure for ARMv5 (soft-float, static)
         run: |
           # 使用 ARMv5 交叉编译器
+          CPPFLAGS="-I/usr/arm-linux-gnueabi/include" \
+          LDFLAGS="-L/usr/arm-linux-gnueabi/lib" \
           CC=arm-linux-gnueabi-gcc \
           ./configure \
             --host=arm-linux-gnueabi \

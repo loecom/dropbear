@@ -23,6 +23,15 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y gcc-arm-linux-gnueabi
 
+      - name: Download and cross-compile zlib for ARMv5
+        run: |
+          wget https://zlib.net/zlib-1.3.2.tar.gz
+          tar -xzf zlib-1.3.2.tar.gz
+          cd zlib-1.3.2
+          CC=arm-linux-gnueabi-gcc ./configure --static
+          make
+          sudo make install prefix=/usr/arm-linux-gnueabi
+
       - name: Configure for ARMv5 (soft-float, static)
         run: |
           # 使用 ARMv5 交叉编译器

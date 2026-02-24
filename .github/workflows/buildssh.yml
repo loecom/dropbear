@@ -82,6 +82,10 @@ jobs:
       - name: Verify architecture of binary
         run: |
           file /tmp/dropbear-armv5/sbin/dropbear
+          echo "Checking if dropbear links to crypt()..."
+          nm /tmp/dropbear-armv5/sbin/dropbear | grep -i crypt
+          echo "Checking if dropbear links to zlib()..."
+          nm /tmp/dropbear-armv5/sbin/dropbear | grep -E 'deflate|inflate|zlib'
 
       - name: Upload ARMv5 binaries as artifact
         uses: actions/upload-artifact@v4
